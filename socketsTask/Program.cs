@@ -168,6 +168,22 @@ namespace Sockets
                 head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\r\n");
                 body = File.ReadAllBytes("hello.html");
             }
+            else if (request.RequestUri.Contains("?"))
+            {
+                var queryString = request.RequestUri.Split('?')[1];
+                var queryStringParsed = HttpUtility.ParseQueryString(queryString);
+                var greeting = queryStringParsed["greeting"];
+                var name = queryStringParsed["name"];
+                var str = Encoding.UTF8.GetString(File.ReadAllBytes("hello.html"));
+
+                if (greeting != null)
+                    str = str.Replace("{{Hello}}", greeting);
+                if (name != null) 
+                    str = str.Replace("{{World}}", name);
+                
+                head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\r\n");
+                body = Encoding.UTF8.GetBytes(str);
+            } 
             
             if (request.RequestUri == "/groot.gif")
             {
