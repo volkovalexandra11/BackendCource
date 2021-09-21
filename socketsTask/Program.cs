@@ -173,7 +173,16 @@ namespace Sockets
             {
                 head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: image/gif; charset=utf-8\n\r\n");
                 body = File.ReadAllBytes("groot.gif");
-            }  
+            }
+            
+            if (request.RequestUri == "/time.html")
+            {
+                head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\r\n");
+                var str = Encoding.UTF8
+                    .GetString(File.ReadAllBytes("time.template.html"))
+                    .Replace("{{ServerTime}}", $"{DateTime.Now}");
+                body = Encoding.UTF8.GetBytes(str);
+            }
             
             return CreateResponseBytes(head, body);
         }
