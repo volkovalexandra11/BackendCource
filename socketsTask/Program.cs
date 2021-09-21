@@ -24,6 +24,7 @@ namespace Sockets
     {
         private const int ListeningPort = 11000;
         private static readonly ManualResetEvent connectionEstablished = new ManualResetEvent(false);
+        private static int count = 0;
 
         private class ReceivingState
         {
@@ -159,29 +160,50 @@ namespace Sockets
 
         private static byte[] ProcessRequest(Request request)
         {
-            // TODO
             var head = new StringBuilder("HTTP/1.1 404 Not Found\r\n");
             var body = Array.Empty<byte>();
 
             if (request.RequestUri is "/" or "/hello.html")
             {
-                head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\r\n");
+                var cookieHeader = request.Headers.FirstOrDefault(h => h.Name == "Cookie");
                 body = File.ReadAllBytes("hello.html");
+                
+                if (cookieHeader != null && count != 0)
+                {   
+                    var name = cookieHeader.Value.Split('=')[1];
+                    var str = Encoding.UTF8.GetString(File.ReadAllBytes("hello.html"))
+                        .Replace("{{World}}", HttpUtility.HtmlEncode(name));
+                    body = Encoding.UTF8.GetBytes(str);
+                }
+                
+                head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\r\n");
             }
             else if (request.RequestUri.Contains("?"))
             {
                 var queryString = request.RequestUri.Split('?')[1];
+                var cookieHeader = request.Headers.FirstOrDefault(h => h.Name == "Cookie");
                 var queryStringParsed = HttpUtility.ParseQueryString(queryString);
                 var greeting = queryStringParsed["greeting"];
                 var name = queryStringParsed["name"];
-                var str = Encoding.UTF8.GetString(File.ReadAllBytes("hello.html"));
-
-                if (greeting != null)
-                    str = str.Replace("{{Hello}}", HttpUtility.HtmlEncode(greeting));
-                if (name != null) 
-                    str = str.Replace("{{World}}", HttpUtility.HtmlEncode(name));
+                
+                if (name == null && cookieHeader != null)
+                {
+                    name = cookieHeader.Value.Split('=')[1];
+                }
                 
                 head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\r\n");
+                var str = Encoding.UTF8.GetString(File.ReadAllBytes("hello.html"));
+                if (greeting != null)
+                    str = str.Replace("{{Hello}}", HttpUtility.HtmlEncode(greeting));
+                if (name != null)
+                {
+                    str = str.Replace("{{World}}", HttpUtility.HtmlEncode(name));
+                    head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n" +
+                                             $"Set-Cookie: name={name}\n\r\n");
+                }
+                    
+                
+                
                 body = Encoding.UTF8.GetBytes(str);
             } 
             
@@ -199,7 +221,8 @@ namespace Sockets
                     .Replace("{{ServerTime}}", $"{DateTime.Now}");
                 body = Encoding.UTF8.GetBytes(str);
             }
-            
+
+            count++;
             return CreateResponseBytes(head, body);
         }
 
