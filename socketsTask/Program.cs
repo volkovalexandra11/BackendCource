@@ -177,9 +177,9 @@ namespace Sockets
                 var str = Encoding.UTF8.GetString(File.ReadAllBytes("hello.html"));
 
                 if (greeting != null)
-                    str = str.Replace("{{Hello}}", greeting);
+                    str = str.Replace("{{Hello}}", HttpUtility.HtmlEncode(greeting));
                 if (name != null) 
-                    str = str.Replace("{{World}}", name);
+                    str = str.Replace("{{World}}", HttpUtility.HtmlEncode(name));
                 
                 head = new StringBuilder("HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\r\n");
                 body = Encoding.UTF8.GetBytes(str);
