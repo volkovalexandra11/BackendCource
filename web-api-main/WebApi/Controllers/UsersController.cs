@@ -5,6 +5,9 @@ using WebApi.Models;
 
 namespace WebApi.Controllers
 {
+
+    
+    
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : Controller
@@ -18,6 +21,7 @@ namespace WebApi.Controllers
 
         [HttpGet("{userId}")]
         [Produces("application/json", "application/xml")]
+        [HttpGet("{userId}", Name = nameof(GetUserById))]
         public ActionResult<UserDto> GetUserById([FromRoute] Guid userId)
         {
             var user = userRepository.FindById(userId);
@@ -35,9 +39,33 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateUser([FromBody] object user)
+        public IActionResult CreateUser([FromBody] UserInfo user)
         {
-            throw new NotImplementedException();
+            var createdUserEntity = new UserEntity()
+            {
+                Login = user.Login,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            };
+            
+            return CreatedAtRoute(
+                nameof(GetUserById),
+                new { userId = createdUserEntity.Id },
+                createdUserEntity.Id);
+        }
+        
+        public class UserInfo
+        {
+            public string Login { get; }
+            public string FirstName { get; }
+            public string LastName { get; }
+     
+            public UserInfo(string login, string firstName, string lastName)
+            {
+                Login = login;
+                FirstName = firstName;
+                LastName = lastName;
+            }
         }
     }
 }
