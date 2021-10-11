@@ -1,9 +1,14 @@
+using System;
+using System.Reflection;
+using AutoMapper;
 using Game.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WebApi.Controllers;
+using WebApi.Models;
 
 namespace WebApi
 {
@@ -35,6 +40,16 @@ namespace WebApi
                     options.SuppressMapClientErrors = true;
                 });
             services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+            services.AddAutoMapper(cfg =>
+                {
+                    cfg.CreateMap<UserEntity, UserDto>()
+                        .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
+                    cfg.CreateMap<UserCreateDto, UserEntity>();
+                    // cfg.CreateMap<UserUpdateDto, UserEntity>();
+                    // cfg.CreateMap<UserEntity, UserUpdateDto>();
+                },
+                Array.Empty<Assembly>()
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

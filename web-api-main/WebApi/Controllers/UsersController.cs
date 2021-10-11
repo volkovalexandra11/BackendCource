@@ -1,71 +1,60 @@
 ﻿using System;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using AutoMapper;
 using Game.Domain;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Models;
 
 namespace WebApi.Controllers
 {
-
-    
-    
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : Controller
     {
         private IUserRepository userRepository;
+
+        private IMapper mapper;
         // Чтобы ASP.NET положил что-то в userRepository требуется конфигурация
-        public UsersController(IUserRepository userRepository)
+        public UsersController(IUserRepository userRepository, IMapper mapper)
         {
             this.userRepository = userRepository;
+            this.mapper = mapper;
         }
 
-        [HttpGet("{userId}")]
-        [Produces("application/json", "application/xml")]
+        [HttpHead("{userId}")]
         [HttpGet("{userId}", Name = nameof(GetUserById))]
+        [Produces("application/json", "application/xml")]
         public ActionResult<UserDto> GetUserById([FromRoute] Guid userId)
         {
             var user = userRepository.FindById(userId);
             if (user == null)
-            {
                 return NotFound();
-            }
-
-            var userDto = new UserDto
-            {
-                FullName = $"{user.LastName} {user.FirstName}",
-                Id = userId
-            };
+            var userDto = mapper.Map<UserDto>(user);
             return Ok(userDto);
         }
 
         [HttpPost]
-        public IActionResult CreateUser([FromBody] UserInfo user)
+        [Produces("application/json", "application/xml")]
+        public IActionResult CreateUser([FromBody] UserCreateDto user)
         {
-            var createdUserEntity = new UserEntity()
-            {
-                Login = user.Login,
-                FirstName = user.FirstName,
-                LastName = user.LastName
-            };
-            
-            return CreatedAtRoute(
-                nameof(GetUserById),
-                new { userId = createdUserEntity.Id },
+            if (user == null)
+                return BadRequest();
+
+            var a = nameof(UserCreateDto.Login);
+
+            if (string.IsNullOrEmpty(user.Login) || !user.Login.All(char.IsLetterOrDigit))
+                ModelState.AddModelError(nameof(UserCreateDto.Login), "Логин есть Грут");
+
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(ModelState);
+
+            var userEntity = mapper.Map<UserEntity>(user);
+            var createdUserEntity = userRepository.Insert(userEntity);
+            return CreatedAtRoute(nameof(GetUserById),
+                new {userId = createdUserEntity.Id},
                 createdUserEntity.Id);
-        }
-        
-        public class UserInfo
-        {
-            public string Login { get; }
-            public string FirstName { get; }
-            public string LastName { get; }
-     
-            public UserInfo(string login, string firstName, string lastName)
-            {
-                Login = login;
-                FirstName = firstName;
-                LastName = lastName;
-            }
         }
     }
 }
