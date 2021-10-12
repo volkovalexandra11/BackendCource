@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using AutoMapper;
 using Game.Domain;
@@ -36,8 +34,7 @@ namespace WebApi.Controllers
             var user = userRepository.FindById(userId);
             if (user == null)
                 return NotFound();
-            var userDto = mapper.Map<UserDto>(user);
-            return Ok(userDto);
+            return Ok(mapper.Map<UserDto>(user));
         }
 
         [HttpPost]
@@ -47,16 +44,14 @@ namespace WebApi.Controllers
             if (user == null)
                 return BadRequest();
             if (string.IsNullOrEmpty(user.Login) || !user.Login.All(char.IsLetterOrDigit))
+            {
                 ModelState.AddModelError(nameof(UserCreationDto.Login), "default login");
-
-            if (!ModelState.IsValid)
                 return UnprocessableEntity(ModelState);
-
-            var userEntity = mapper.Map<UserEntity>(user);
-            var createdUserEntity = userRepository.Insert(userEntity);
+            }
+            var userEntity = userRepository.Insert(mapper.Map<UserEntity>(user));
             return CreatedAtRoute(nameof(GetUserById),
-                new {userId = createdUserEntity.Id},
-                createdUserEntity.Id);
+                new {userId = userEntity.Id},
+                userEntity.Id);
         }
         
         [HttpPut("{userId}", Name = nameof(UpdateUser))]
@@ -72,15 +67,10 @@ namespace WebApi.Controllers
             user.Id = userId;
             var userEntity = mapper.Map<UserEntity>(user);
             userRepository.UpdateOrInsert(userEntity, out var isInserted);
-            
-            if (isInserted)
-            {
-                return CreatedAtRoute(nameof(UpdateUser),
-                    new {userId = userEntity.Id},
-                    userEntity.Id);
-            }
-
-            return NoContent();
+            if (!isInserted) return NoContent();
+            return CreatedAtRoute(nameof(UpdateUser),
+                new {userId = userEntity.Id},
+                userEntity.Id);
         }
         
         [HttpPatch("{userId}", Name = nameof(PartiallyUpdateUser))]
