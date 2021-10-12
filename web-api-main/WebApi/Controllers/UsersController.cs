@@ -19,7 +19,9 @@ namespace WebApi.Controllers
         private readonly IMapper mapper;
         private readonly LinkGenerator linkGenerator;
 
-        public UsersController(IUserRepository userRepository, IMapper mapper, LinkGenerator linkGenerator)
+        public UsersController(IUserRepository userRepository, 
+            IMapper mapper, 
+            LinkGenerator linkGenerator)
         {
             this.userRepository = userRepository;
             this.mapper = mapper;
@@ -83,24 +85,25 @@ namespace WebApi.Controllers
         
         [HttpPatch("{userId}", Name = nameof(PartiallyUpdateUser))]
         [Produces("application/json", "application/xml")]
-        public IActionResult PartiallyUpdateUser([FromRoute] Guid userId, 
-            [FromBody] JsonPatchDocument<UserUpdatingDto> patchDoc)
+        public IActionResult PartiallyUpdateUser(
+            [FromRoute] Guid userId, 
+            [FromBody] JsonPatchDocument<UserUpdatingDto> patchDoc
+            )
         {
-            if (patchDoc == null)
+            if (patchDoc is null)
                 return BadRequest();
 
             var user = userRepository.FindById(userId);
-            if (user == null)
+            if (user is null)
                 return NotFound();
             
-            var updateDto = mapper.Map<UserUpdatingDto>(user);
-            patchDoc.ApplyTo(updateDto, ModelState);
+            var updatingDto = mapper.Map<UserUpdatingDto>(user);
+            patchDoc.ApplyTo(updatingDto, ModelState);
 
-            if (!TryValidateModel(updateDto))
+            if (!TryValidateModel(updatingDto))
                 return UnprocessableEntity(ModelState);
-
-            user = mapper.Map(updateDto, user);
-            userRepository.Update(user);
+            
+            userRepository.Update(mapper.Map(updatingDto, user));
             return NoContent();
         }
         
@@ -123,7 +126,7 @@ namespace WebApi.Controllers
         
         [HttpGet(Name = nameof(GetUsers))]
         [Produces("application/json", "application/xml")]
-        public IActionResult GetUsers([FromQuery] int pageNumber=1, [FromQuery] int pageSize=10)
+        public IActionResult GetUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             pageNumber = Math.Max(1, pageNumber);
             pageSize = Math.Min(20, Math.Max(1, pageSize));
@@ -131,26 +134,39 @@ namespace WebApi.Controllers
             var pageList = userRepository.GetPage(pageNumber, pageSize);
             var users = mapper.Map<IEnumerable<UserDto>>(pageList);
             
-            string previousPageLink = null;
-            if (pageNumber > 1)
-                previousPageLink = linkGenerator
-                    .GetUriByRouteValues(HttpContext, 
-                        "GetUsers", 
-                        new {pageNumber=pageNumber-1,pageSize}
-                        );
-            
-            var paginationHeader = new
-            {
-                previousPageLink,
-                nextPageLink = linkGenerator.GetUriByRouteValues(HttpContext, "GetUsers", new {pageNumber=pageNumber+1, pageSize}),
-                totalCount = 3,
-                pageSize,
-                currentPage = pageNumber,
-                totalPages = 3,
-            };
+            var previousPageLink = GetPreviousPageLink(pageNumber, pageSize);
+            var paginationHeader = GetPaginationHeader(pageNumber, pageSize, previousPageLink);
             
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationHeader));
             return Ok(users);
-        }        
+        }
+
+        private object GetPaginationHeader(int pageNumber, int pageSize, string previousPageLink)
+        {
+            return new
+            {
+                previousPageLink,
+                nextPageLink = linkGenerator
+                    .GetUriByRouteValues(HttpContext, 
+                        "GetUsers", 
+                        new {pageNumber = pageNumber + 1, pageSize}
+                    ),
+                totalCount = 4,
+                pageSize,
+                currentPage = pageNumber,
+                totalPages = 4
+            };
+        }
+
+        private string GetPreviousPageLink(int pageNumber, int pageSize)
+        {
+            if (pageNumber > 1)
+                return linkGenerator
+                    .GetUriByRouteValues(HttpContext,
+                        "GetUsers",
+                        new {pageNumber = pageNumber - 1, pageSize}
+                    );
+            return null;
+        }
     }
 }
