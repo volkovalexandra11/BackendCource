@@ -46,11 +46,8 @@ namespace WebApi.Controllers
         {
             if (user == null)
                 return BadRequest();
-
-            var a = nameof(UserCreationDto.Login);
-
             if (string.IsNullOrEmpty(user.Login) || !user.Login.All(char.IsLetterOrDigit))
-                ModelState.AddModelError("login", "default login");
+                ModelState.AddModelError(nameof(UserCreationDto.Login), "default login");
 
             if (!ModelState.IsValid)
                 return UnprocessableEntity(ModelState);
