@@ -43,11 +43,16 @@ namespace WebApi.Controllers
         {
             if (user == null)
                 return BadRequest();
-            if (string.IsNullOrEmpty(user.Login) || !user.Login.All(char.IsLetterOrDigit))
-            {
+
+            var loginIsValid = string.IsNullOrEmpty(user.Login) 
+                               || !user.Login.All(char.IsLetterOrDigit);
+            
+            if (loginIsValid) 
                 ModelState.AddModelError(nameof(UserCreationDto.Login), "default login");
+            
+            if (!ModelState.IsValid) 
                 return UnprocessableEntity(ModelState);
-            }
+            
             var userEntity = userRepository.Insert(mapper.Map<UserEntity>(user));
             return CreatedAtRoute(nameof(GetUserById),
                 new {userId = userEntity.Id},
@@ -58,7 +63,7 @@ namespace WebApi.Controllers
         [Produces("application/json", "application/xml")]
         public IActionResult UpdateUser([FromRoute] Guid userId, [FromBody] UserUpdatingDto user)
         {
-            if (userId.Equals(Guid.Empty) || user == null)
+            if (user is null || userId.Equals(Guid.Empty))
                 return BadRequest();
             
             if (!ModelState.IsValid)
@@ -66,16 +71,20 @@ namespace WebApi.Controllers
 
             user.Id = userId;
             var userEntity = mapper.Map<UserEntity>(user);
+            
             userRepository.UpdateOrInsert(userEntity, out var isInserted);
-            if (!isInserted) return NoContent();
-            return CreatedAtRoute(nameof(UpdateUser),
-                new {userId = userEntity.Id},
-                userEntity.Id);
+
+            return !isInserted
+                ? NoContent()
+                : CreatedAtRoute(nameof(UpdateUser),
+                    new {userId = userEntity.Id},
+                    userEntity.Id);
         }
         
         [HttpPatch("{userId}", Name = nameof(PartiallyUpdateUser))]
         [Produces("application/json", "application/xml")]
-        public IActionResult PartiallyUpdateUser([FromRoute] Guid userId, [FromBody] JsonPatchDocument<UserUpdatingDto> patchDoc)
+        public IActionResult PartiallyUpdateUser([FromRoute] Guid userId, 
+            [FromBody] JsonPatchDocument<UserUpdatingDto> patchDoc)
         {
             if (patchDoc == null)
                 return BadRequest();
@@ -99,9 +108,8 @@ namespace WebApi.Controllers
         public IActionResult DeleteUser([FromRoute] Guid userId)
         {
             if (userRepository.FindById(userId) == null)
-            {
                 return NotFound();
-            }
+            
             userRepository.Delete(userId);
             return NoContent();
         }
