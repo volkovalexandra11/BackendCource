@@ -1,0 +1,113 @@
+.bd-placeholder-img {
+  font-size: 1.125rem;
+  text-anchor: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+@media (min-width: 768px) {
+  .bd-placeholder-img-lg {
+    font-size: 3.5rem;
+  }
+}
+
+.news-header {
+  line-height: 1;
+  border-bottom: 1px solid #e5e5e5;
+  text-align: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.news-header-logo {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  font-size: 2.25rem;
+}
+
+.news-header-logo:hover {
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+.display-4 {
+  font-size: 2.5rem;
+}
+@media (min-width: 768px) {
+  .display-4 {
+    font-size: 3rem;
+  }
+}
+
+/* Pagination */
+.news-pagination {
+  margin-bottom: 4rem;
+}
+.news-pagination > .btn {
+  border-radius: 2rem;
+}
+
+/*
+ * Articles
+ */
+.news-article {
+  margin-bottom: 4rem;
+}
+.news-article-title {
+  margin-bottom: 0.25rem;
+}
+.news-article-meta {
+  margin-bottom: 0.25rem;
+  color: #999;
+}
+
+/*
+ * Footer
+ */
+.news-footer {
+  padding: 2.5rem 0;
+  color: #999;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-top: 0.05rem solid #e5e5e5;
+}
+.news-footer p:last-child {
+  margin-bottom: 0;
+}
+
+/*
+ * Weather
+ */
+.weather-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: max-content;
+}
+
+.weather-temperature {
+  font-size: 2.5rem;
+}
+
+.weather-min-max {
+  font-size: 1rem;
+}
+
+/*
+ * Archive Links
+ */
+.archive-links-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: max-content;
+}
