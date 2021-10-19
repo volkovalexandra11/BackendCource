@@ -1,5 +1,9 @@
 ﻿@using System.Web
 @model BadNews.Models.News.IndexModel
+@using System.Globalization
+@{
+    var culture = CultureInfo.CreateSpecificCulture("ru-ru");
+}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -36,7 +40,7 @@
                 <div class="news-article">
                     <h4 class="news-article-title">@article.Header</h4>
                     <p class="news-article-meta">
-                        @article.Date
+                        @article.Date.ToString("d MMM yyyy", culture)
                     </p>
                     <p class="mb-auto">
                         @article.Teaser
