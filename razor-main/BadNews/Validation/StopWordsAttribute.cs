@@ -23,8 +23,9 @@ namespace BadNews.Validation
                 return ValidationResult.Success;
 
             var cleanText = cleaningRegex.Replace(text, " ");
-
-            var hasStopWord = StopWords.Any(it => cleanText.IndexOf(it, StringComparison.InvariantCultureIgnoreCase) >= 0);
+            
+            var hasStopWord = StopWords.Any(it => 
+                cleanText.Contains(it, StringComparison.InvariantCultureIgnoreCase));
             return hasStopWord
                 ? new ValidationResult(FormatErrorMessage(validationContext.DisplayName))
                 : ValidationResult.Success;

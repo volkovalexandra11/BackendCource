@@ -7,14 +7,11 @@ namespace BadNews.Elevation
     {
         public static bool IsElevated(this HttpRequest request)
         {
-            bool isElevated = request.Cookies.TryGetValue(ElevationConstants.CookieName, out var value)
-                && value == ElevationConstants.CookieValue;
+            var isElevated = request.Cookies.TryGetValue(ElevationConstants.CookieName, out var value)
+                             && value == ElevationConstants.CookieValue;
             return isElevated;
         }
 
-        public static bool IsElevated(this ViewContext viewContext)
-        {
-            return viewContext.HttpContext.Request.IsElevated();
-        }
+        public static bool IsElevated(this ViewContext viewContext) => viewContext.HttpContext.Request.IsElevated();
     }
 }

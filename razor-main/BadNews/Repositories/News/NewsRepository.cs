@@ -9,37 +9,32 @@ namespace BadNews.Repositories.News
 {
     public class NewsRepository : INewsRepository
     {
-        private static readonly string recordSeparator = "<--e891b395-4498-4f93-84a5-19b867d826ae-->";
+        private const string RecordSeparator = "<--e891b395-4498-4f93-84a5-19b867d826ae-->";
         private readonly string dataFileName;
         private string DataFilePath => $"./.db/{dataFileName}";
 
-        private object dataFileLocker = new object();
+        private readonly object dataFileLocker = new object();
 
-        public NewsRepository(string dataFileName = "news.txt")
-        {
-            this.dataFileName = dataFileName;
-        }
+        public NewsRepository(string dataFileName = "news.txt") => this.dataFileName = dataFileName;
 
         public void InitializeDataBase(IEnumerable<NewsArticle> articles)
         {
             var dataFileInfo = new FileInfo(DataFilePath);
             if (dataFileInfo.Exists)
                 dataFileInfo.Delete();
-            if (!dataFileInfo.Directory.Exists)
+            if (dataFileInfo.Directory is {Exists: false})
                 dataFileInfo.Directory.Create();
 
             lock (dataFileLocker)
             {
                 var file = dataFileInfo.Open(FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                using (var fileWriter = new StreamWriter(file))
+                using var fileWriter = new StreamWriter(file);
+                foreach (var article in articles)
                 {
-                    foreach (var article in articles)
-                    {
-                        var storedArticle = new NewsArticle(article);
-                        if (storedArticle.Id == Guid.Empty)
-                            storedArticle.Id = Guid.NewGuid();
-                        AppendArticle(fileWriter, storedArticle);
-                    }
+                    var storedArticle = new NewsArticle(article);
+                    if (storedArticle.Id == Guid.Empty)
+                        storedArticle.Id = Guid.NewGuid();
+                    AppendArticle(fileWriter, storedArticle);
                 }
             }
         }
@@ -51,20 +46,18 @@ namespace BadNews.Repositories.News
             var idString = id.ToString();
             ReadFromFile((meta, data) =>
             {
-                if (idString == meta.ToString())
-                {
-                    var obj = JsonConvert.DeserializeObject<NewsArticle>(data.ToString());
-                    if (id != obj.Id)
-                        throw new InvalidDataException();
-                    article = obj;
-                }
+                if (idString != meta.ToString()) return false;
+                var obj = JsonConvert.DeserializeObject<NewsArticle>(data.ToString());
+                if (id != obj.Id)
+                    throw new InvalidDataException();
+                article = obj;
                 return false;
             });
 
-            return article != null && !article.IsDeleted ? article : null;
+            return article is {IsDeleted: false} ? article : null;
         }
 
-        public IList<NewsArticle> GetArticles(Func<NewsArticle, bool> predicate = null)
+        public IEnumerable<NewsArticle> GetArticles(Func<NewsArticle, bool> predicate = null)
         {
             var articles = new Dictionary<Guid, NewsArticle>();
 
@@ -75,7 +68,7 @@ namespace BadNews.Repositories.News
                 if (id != obj.Id)
                     throw new InvalidDataException();
                 if (obj.IsDeleted || predicate == null || predicate(obj))
-                articles[id] = obj;
+                    articles[id] = obj;
                 return false;
             });
 
@@ -114,16 +107,14 @@ namespace BadNews.Repositories.News
             lock (dataFileLocker)
             {
                 var file = new FileStream(DataFilePath, FileMode.Append, FileAccess.Write, FileShare.None);
-                using (var fileWriter = new StreamWriter(file))
+                using var fileWriter = new StreamWriter(file);
+                var storedArticle = new NewsArticle(article)
                 {
-                    var storedArticle = new NewsArticle(article)
-                    {
-                        Id = Guid.NewGuid()
-                    };
-                    AppendArticle(fileWriter, storedArticle);
+                    Id = Guid.NewGuid()
+                };
+                AppendArticle(fileWriter, storedArticle);
 
-                    return storedArticle.Id;
-                }
+                return storedArticle.Id;
             }
         }
 
@@ -132,24 +123,22 @@ namespace BadNews.Repositories.News
             lock (dataFileLocker)
             {
                 var file = new FileStream(DataFilePath, FileMode.Append, FileAccess.Write, FileShare.None);
-                using (var fileWriter = new StreamWriter(file))
+                using var fileWriter = new StreamWriter(file);
+                var storedArticle = new NewsArticle()
                 {
-                    var storedArticle = new NewsArticle()
-                    {
-                        Id = id,
-                        IsDeleted = true
-                    };
+                    Id = id,
+                    IsDeleted = true
+                };
 
-                    AppendArticle(fileWriter, storedArticle);
-                }
+                AppendArticle(fileWriter, storedArticle);
             }
         }
 
-        private static void AppendArticle(StreamWriter file, NewsArticle article)
+        private static void AppendArticle(TextWriter file, NewsArticle article)
         {
             var meta = article.Id.ToString();
             var data = JsonConvert.SerializeObject(article, Formatting.Indented);
-            file.WriteLine(recordSeparator);
+            file.WriteLine(RecordSeparator);
             file.WriteLine(meta);
             file.WriteLine(data);
         }
@@ -163,48 +152,44 @@ namespace BadNews.Repositories.News
             lock (dataFileLocker)
             {
                 var file = new FileStream(DataFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                using (var fileReader = new SeekableStreamTextReader(file, Encoding.UTF8))
-                {
-                    int objectLine = 0;
-                    var metaBuilder = new StringBuilder();
-                    var dataBuilder = new StringBuilder();
+                using var fileReader = new SeekableStreamTextReader(file, Encoding.UTF8);
+                var objectLine = 0;
+                var metaBuilder = new StringBuilder();
+                var dataBuilder = new StringBuilder();
 
-                    string line = fileReader.ReadLine();
-                    while (line != null)
+                var line = fileReader.ReadLine();
+                while (line != null)
+                {
+                    if (line != RecordSeparator)
                     {
-                        if (line != recordSeparator)
+                        if (objectLine++ > 0)
                         {
-                            if (objectLine++ > 0)
-                            {
-                                dataBuilder.Append(line);
-                            }
-                            else
-                            {
-                                metaBuilder.Append(line);
-                            }
+                            dataBuilder.Append(line);
                         }
                         else
                         {
-                            if (metaBuilder.Length > 0 || dataBuilder.Length > 0)
-                            {
-                                if (onObjectRead(metaBuilder, dataBuilder))
-                                    return;
-                            }
-
-                            objectLine = 0;
-                            metaBuilder = new StringBuilder();
-                            dataBuilder = new StringBuilder();
+                            metaBuilder.Append(line);
+                        }
+                    }
+                    else
+                    {
+                        if (metaBuilder.Length > 0 || dataBuilder.Length > 0)
+                        {
+                            if (onObjectRead(metaBuilder, dataBuilder))
+                                return;
                         }
 
-                        line = fileReader.ReadLine();
+                        objectLine = 0;
+                        metaBuilder = new StringBuilder();
+                        dataBuilder = new StringBuilder();
                     }
 
-                    if (dataBuilder.Length > 0)
-                    {
-                        if (onObjectRead(metaBuilder, dataBuilder))
-                            return;
-                    }
+                    line = fileReader.ReadLine();
                 }
+
+                if (dataBuilder.Length <= 0) return;
+                if (onObjectRead(metaBuilder, dataBuilder))
+                    return; //?
             }
         }
     }

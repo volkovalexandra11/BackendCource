@@ -8,9 +8,7 @@ namespace BadNews.Validation
     public class StopWordsAttributeAdapter : AttributeAdapterBase<StopWordsAttribute>
     {
         public StopWordsAttributeAdapter(StopWordsAttribute attribute, IStringLocalizer stringLocalizer)
-            : base(attribute, stringLocalizer)
-        {
-        }
+            : base(attribute, stringLocalizer) { }
 
         public override void AddValidation(ClientModelValidationContext context)
         {

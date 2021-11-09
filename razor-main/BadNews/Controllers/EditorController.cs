@@ -15,13 +15,9 @@ namespace BadNews.Controllers
         {
             this.newsRepository = newsRepository;
         }
-        
-        // GET
-        public IActionResult Index()
-        {
-            return View(new IndexViewModel());
-        }
 
+        public IActionResult Index() => View(new IndexViewModel());
+ 
         [HttpPost]
         public IActionResult CreateArticle([FromForm] IndexViewModel model)
         {
@@ -40,7 +36,7 @@ namespace BadNews.Controllers
 
             return RedirectToAction("FullArticle", "News", new
             {
-                id = id
+                id
             });
         }
 

@@ -17,9 +17,14 @@ namespace BadNews.Repositories.News
             var currentYear = DateTime.Now.Year;
             var sampleNews = BuildSampleNews(currentYear);
             foreach (var it in sampleNews)
+            {
                 yield return it;
+            }
+
             while (true)
+            {
                 yield return GenerateTrashNewsArticle(currentYear - 4, currentYear - 2);
+            }
         }
 
         private NewsArticle GenerateTrashNewsArticle(int minYear, int maxYear)
@@ -53,7 +58,7 @@ namespace BadNews.Repositories.News
             return $"{subject} {action} {@object}";
         }
 
-        private static string[] BuildSubjects() => new string[] {
+        private static string[] BuildSubjects() => new[] {
             "Восьмиклассник",
             "Программист",
             "Математик",
@@ -66,7 +71,7 @@ namespace BadNews.Repositories.News
             "Кролик",
         };
 
-        private static string[] BuildActions() => new string[] {
+        private static string[] BuildActions() => new[] {
             "потряс",
             "побежал",
             "съел",
@@ -79,7 +84,7 @@ namespace BadNews.Repositories.News
             "решил",
         };
 
-        private static string[] BuildObjects() => new string[] {
+        private static string[] BuildObjects() => new[] {
             "Касперского",
             "быстро",
             "медленно",
@@ -92,7 +97,7 @@ namespace BadNews.Repositories.News
             "инфекцию",
         };
 
-        private static NewsArticle[] BuildSampleNews(int currentYear)
+        private static IEnumerable<NewsArticle> BuildSampleNews(int currentYear)
         {
             var articles = new[] {
                 new NewsArticle
@@ -263,21 +268,14 @@ namespace BadNews.Repositories.News
 
         private static string ReadHtmlContent(string contentId)
         {
-            if (!string.IsNullOrEmpty(contentId))
-            {
-                var cd = Directory.GetCurrentDirectory();
-                var path = $"./$Content/NewsArticles/{contentId}.html";
-                if (File.Exists(path))
-                {
-                    var text = File.ReadAllText(path);
-                    return text;
-                }
-                else
-                {
-                    throw new FileNotFoundException($"Can't find file for contendId={contentId}");
-                }
-            }
-            return "";
+            if (string.IsNullOrEmpty(contentId)) return "";
+            var cd = Directory.GetCurrentDirectory();
+            var path = $"./$Content/NewsArticles/{contentId}.html";
+            if (!File.Exists(path)) 
+                throw new FileNotFoundException($"Can't find file for contendId={contentId}");
+            var text = File.ReadAllText(path);
+            return text;
+
         }
     }
 }

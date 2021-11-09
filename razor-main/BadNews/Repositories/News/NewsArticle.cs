@@ -5,17 +5,15 @@ namespace BadNews.Repositories.News
     public class NewsArticle
     {
         public Guid Id { get; set; }
-        public bool IsDeleted  { get; set; }
-        public bool IsFeatured  { get; set; }
-        public string Header { get; set; }
-        public DateTime Date { get; set; }
-        public string Teaser { get; set; }
-        public string ContentId { get; set; }
+        public bool IsDeleted  { get; init; }
+        public bool IsFeatured  { get; init; }
+        public string Header { get; init; }
+        public DateTime Date { get; init; }
+        public string Teaser { get; init; }
+        public string ContentId { get; init; }
         public string ContentHtml { get; set; }
 
-        public NewsArticle()
-        {
-        }
+        public NewsArticle() { }
 
         public NewsArticle(NewsArticle that)
         {

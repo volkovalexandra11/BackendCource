@@ -9,8 +9,6 @@ namespace BadNews.Repositories.News
         private const int DefaultBufferSize = 1024;
         private const int MinBufferSize = 128;
 
-        private Stream stream;
-        private Encoding encoding;
         private Decoder decoder;
 
         private byte[] byteBuffer;
@@ -32,10 +30,10 @@ namespace BadNews.Repositories.News
             if (!stream.CanSeek)
                 throw new ArgumentException("Can't seek stream");
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException("bufferSize");
+                throw new ArgumentOutOfRangeException(nameof(bufferSize));
 
-            this.stream = stream;
-            this.encoding = encoding;
+            this.BaseStream = stream;
+            this.CurrentEncoding = encoding;
             decoder = encoding.GetDecoder();
 
             if (bufferSize < MinBufferSize) bufferSize = MinBufferSize;
@@ -48,13 +46,15 @@ namespace BadNews.Repositories.News
             isBlocked = false;
         }
 
-        public Encoding CurrentEncoding => encoding;
-        public Stream BaseStream => stream;
-        public long UsedBytes => stream.Position - byteLen + encoding.GetBytes(charBuffer, 0, charPos).Length;
+        private Encoding CurrentEncoding { get; }
+
+        private Stream BaseStream { get; set; }
+
+        public long UsedBytes => BaseStream.Position - byteLen + CurrentEncoding.GetBytes(charBuffer, 0, charPos).Length;
 
         public void Seek(long offset, SeekOrigin seekOrigin)
         {
-            stream.Seek(offset, seekOrigin);
+            BaseStream.Seek(offset, seekOrigin);
             DiscardBufferedData();
         }
 
@@ -63,25 +63,23 @@ namespace BadNews.Repositories.News
             byteLen = 0;
             charLen = 0;
             charPos = 0;
-            decoder = encoding.GetDecoder();
+            decoder = CurrentEncoding.GetDecoder();
             isBlocked = false;
         }
 
         public override int Peek()
         {
-            if (stream == null)
+            if (BaseStream == null)
                 throw new InvalidOperationException("Reader closed");
 
-            if (charPos == charLen)
-            {
-                if (isBlocked || ReadBuffer() == 0) return -1;
-            }
+            if (charPos != charLen) return charBuffer[charPos];
+            if (isBlocked || ReadBuffer() == 0) return -1;
             return charBuffer[charPos];
         }
 
         public override int Read()
         {
-            if (stream == null)
+            if (BaseStream == null)
                 throw new InvalidOperationException("Reader closed");
 
             if (charPos == charLen)
@@ -95,7 +93,7 @@ namespace BadNews.Repositories.News
 
         public override string ReadLine()
         {
-            if (stream == null)
+            if (BaseStream == null)
                 throw new InvalidOperationException("Reader closed");
 
             if (charPos == charLen)
@@ -106,10 +104,10 @@ namespace BadNews.Repositories.News
             StringBuilder sb = null;
             do
             {
-                int i = charPos;
+                var i = charPos;
                 do
                 {
-                    char ch = charBuffer[i];
+                    var ch = charBuffer[i];
                     // Note the following common line feed chars:
                     // \n - UNIX   \r\n - DOS   \r - Mac
                     if (ch == '\r' || ch == '\n')
@@ -125,16 +123,14 @@ namespace BadNews.Repositories.News
                             s = new string(charBuffer, charPos, i - charPos);
                         }
                         charPos = i + 1;
-                        if (ch == '\r' && (charPos < charLen || ReadBuffer() > 0))
-                        {
-                            if (charBuffer[charPos] == '\n') charPos++;
-                        }
+                        if (ch != '\r' || (charPos >= charLen && ReadBuffer() <= 0)) return s;
+                        if (charBuffer[charPos] == '\n') charPos++;
                         return s;
                     }
                     i++;
                 } while (i < charLen);
                 i = charLen - charPos;
-                if (sb == null) sb = new StringBuilder(i + 80);
+                sb ??= new StringBuilder(i + 80);
                 sb.Append(charBuffer, charPos, i);
             } while (ReadBuffer() > 0);
             return sb.ToString();
@@ -148,7 +144,7 @@ namespace BadNews.Repositories.News
 
             do
             {
-                byteLen = stream.Read(byteBuffer, 0, byteBuffer.Length);
+                byteLen = BaseStream.Read(byteBuffer, 0, byteBuffer.Length);
                 if (byteLen == 0)  // We're at EOF
                     return charLen;
 
@@ -159,23 +155,20 @@ namespace BadNews.Repositories.News
             return charLen;
         }
 
-        public override void Close()
-        {
-            Dispose(true);
-        }
+        public override void Close() => Dispose(true);
 
         protected override void Dispose(bool disposing)
         {
             try
             {
-                if (disposing && (stream != null))
-                    stream.Close();
+                if (disposing && (BaseStream != null))
+                    BaseStream.Close();
             }
             finally
             {
-                if (stream != null)
+                if (BaseStream != null)
                 {
-                    stream = null;
+                    BaseStream = null;
                     byteBuffer = null;
                     charBuffer = null;
                     charPos = 0;

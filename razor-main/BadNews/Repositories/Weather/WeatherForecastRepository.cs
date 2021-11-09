@@ -6,9 +6,9 @@ namespace BadNews.Repositories.Weather
 {
     public class WeatherForecastRepository : IWeatherForecastRepository
     {
-        private const string defaultWeatherImageUrl = "/images/cloudy.png";
+        private const string DefaultWeatherImageUrl = "/images/cloudy.png";
 
-        private readonly Random random = new Random();
+        private readonly Random random = new();
         private readonly OpenWeatherClient weatherClient;
         public WeatherForecastRepository(IOptions<OpenWeatherOptions> weatherOptions)
         {
@@ -33,7 +33,7 @@ namespace BadNews.Repositories.Weather
             return new WeatherForecast
             {
                 TemperatureInCelsius = temperature,
-                IconUrl = defaultWeatherImageUrl
+                IconUrl = DefaultWeatherImageUrl
             };
         }
     }

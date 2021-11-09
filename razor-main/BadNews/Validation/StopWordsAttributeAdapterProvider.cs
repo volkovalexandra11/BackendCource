@@ -10,10 +10,9 @@ namespace BadNews.Validation
 
         public IAttributeAdapter GetAttributeAdapter(ValidationAttribute attribute, IStringLocalizer stringLocalizer)
         {
-            if (attribute is StopWordsAttribute)
-                return new StopWordsAttributeAdapter(attribute as StopWordsAttribute, stringLocalizer);
-                
-            return baseProvider.GetAttributeAdapter(attribute, stringLocalizer);
+            return attribute is StopWordsAttribute wordsAttribute 
+                ? new StopWordsAttributeAdapter(wordsAttribute, stringLocalizer) 
+                : baseProvider.GetAttributeAdapter(attribute, stringLocalizer);
         }
     }
 }

@@ -15,8 +15,6 @@ namespace BadNews.Elevation
         }
 
         // Этот метод вызовется уже после вызова метода контроллера
-        public void OnResourceExecuted(ResourceExecutedContext context)
-        {
-        }
+        public void OnResourceExecuted(ResourceExecutedContext context) { }
     }
 }

@@ -5,11 +5,11 @@ namespace BadNews.Models.News
 {
     public class IndexModel
     {
-        public IList<NewsArticle> FeaturedArticles { get; set; }
-        public IList<NewsArticle> PageArticles { get; set; }
-        public int PageIndex { get; set; }
-        public bool IsFirst { get; set; }
-        public bool IsLast { get; set; }
-        public int? Year { get; set; }
+        public IList<NewsArticle> FeaturedArticles { get; init; }
+        public IList<NewsArticle> PageArticles { get; init; }
+        public int PageIndex { get; init; }
+        public bool IsFirst { get; init; }
+        public bool IsLast { get; init; }
+        public int? Year { get; init; }
     }
 }

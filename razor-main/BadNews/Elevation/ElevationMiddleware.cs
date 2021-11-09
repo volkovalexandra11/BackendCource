@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
@@ -21,11 +20,14 @@ namespace BadNews.Elevation
                 var query = context.Request.Query;
                 if (query.ContainsKey("up"))
                 {
-                    context.Response.Cookies.Append(ElevationConstants.CookieName, ElevationConstants.CookieValue,
-                    new CookieOptions
-                    {
-                        HttpOnly = true
-                    });
+                    context
+                        .Response
+                        .Cookies
+                        .Append(
+                            ElevationConstants.CookieName, 
+                            ElevationConstants.CookieValue, 
+                            new CookieOptions {HttpOnly = true}
+                        );
                 }
                 else
                 {
