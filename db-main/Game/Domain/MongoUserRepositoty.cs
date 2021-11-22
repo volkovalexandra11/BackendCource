@@ -13,6 +13,10 @@ namespace Game.Domain
         public MongoUserRepository(IMongoDatabase database)
         {
             userCollection = database.GetCollection<UserEntity>(CollectionName);
+            userCollection.Indexes.CreateOne(
+                new BsonDocument("Login", 1), 
+                new CreateIndexOptions { Unique = true }
+                );
         }
 
         public UserEntity Insert(UserEntity user)
@@ -31,14 +35,15 @@ namespace Game.Domain
 
         public UserEntity GetOrCreateByLogin(string login)
         {
-            //TODO: Это Find или Insert
             var usersEntity = userCollection.Find(x => x.Login == login);
             if (usersEntity.CountDocuments() > 0)
             {
                 return usersEntity.First();
             }
-            var userEntity = new UserEntity();
-            userEntity.Login = login;
+            var userEntity = new UserEntity
+            {
+                Login = login
+            };
             Insert(userEntity);
 
             return userEntity;
