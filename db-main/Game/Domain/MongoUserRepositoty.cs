@@ -60,8 +60,16 @@ namespace Game.Domain
         public PageList<UserEntity> GetPage(int pageNumber, int pageSize)
         {
             //TODO: Тебе понадобятся SortBy, Skip и Limit
-            var a = userCollection.Find(new BsonDocument()).SortBy(x => x.Login).Skip((pageNumber - 1) * pageSize).Limit(pageSize).ToList();
-            return new PageList<UserEntity>(a, userCollection.CountDocuments(new BsonDocument()), pageNumber, pageSize);
+            var a = userCollection
+                .Find(new BsonDocument())
+                .SortBy(x => x.Login)
+                .Skip((pageNumber - 1) * pageSize)
+                .Limit(pageSize)
+                .ToList();
+            return new PageList<UserEntity>(a, 
+                userCollection.CountDocuments(new BsonDocument()), 
+                pageNumber, 
+                pageSize);
         }
 
         // Не нужно реализовывать этот метод
