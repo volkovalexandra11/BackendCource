@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PhotosApp.Areas.Identity.Data;
 using PhotosApp.Services.TicketStores;
 
 namespace PhotosApp.Data
@@ -15,25 +16,26 @@ namespace PhotosApp.Data
     {
         public static void PrepareData(this IHost host)
         {
-            using (var scope = host.Services.CreateScope())
+            using var scope = host.Services.CreateScope();
+            try
             {
-                try
-                {
-                    var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
-                    if (env.IsDevelopment())
-                    {
-                        scope.ServiceProvider.GetRequiredService<PhotosDbContext>().Database.Migrate();
+                var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+                if (!env.IsDevelopment()) return;
+                scope.ServiceProvider.GetRequiredService<PhotosDbContext>().Database.Migrate();
 
-                        var photosDbContext = scope.ServiceProvider.GetRequiredService<PhotosDbContext>();
-                        photosDbContext.SeedWithSamplePhotosAsync().Wait();
-                    }
-                }
-                catch (Exception e)
-                {
-                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(e, "An error occurred while migrating or seeding the database.");
-                }
+                var photosDbContext = scope.ServiceProvider.GetRequiredService<PhotosDbContext>();
+                photosDbContext.SeedWithSamplePhotosAsync().Wait();
+                
+                scope.ServiceProvider.GetRequiredService<UsersDbContext>().Database.Migrate();
             }
+            catch (Exception e)
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                logger.LogError(e, "An error occurred while migrating or seeding the database");
+            }
+
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<PhotosAppUser>>();
+            SeedWithSampleUsersAsync(userManager).Wait();
         }
 
         private static async Task SeedWithSamplePhotosAsync(this PhotosDbContext dbContext)
