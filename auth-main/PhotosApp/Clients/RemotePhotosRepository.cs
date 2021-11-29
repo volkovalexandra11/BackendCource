@@ -46,7 +46,7 @@ namespace PhotosApp.Clients
                 case HttpStatusCode.NotFound:
                 case HttpStatusCode.Unauthorized:
                 case HttpStatusCode.Forbidden:
-                    return new PhotoEntity[0];
+                    return Array.Empty<PhotoEntity>();
                 default:
                     throw new UnexpectedStatusCodeException(response.StatusCode);
             }
@@ -186,11 +186,11 @@ namespace PhotosApp.Clients
 
         private Uri BuildUri(string path, string query = null)
             => new UriBuilder(serviceUrl) { Path = path, Query = query }.Uri;
-        private string UrlEncode(object arg) => arg != null ? HttpUtility.UrlEncode(arg.ToString()) : null;
+        private static string UrlEncode(object arg) => HttpUtility.UrlEncode(arg?.ToString());
 
         private static ByteArrayContent SerializeToJsonContent(object obj)
         {
-            string json = JsonConvert.SerializeObject(obj);
+            var json = JsonConvert.SerializeObject(obj);
             var bytes = Encoding.UTF8.GetBytes(json);
             var content = new ByteArrayContent(bytes);
             content.Headers.ContentType = new MediaTypeHeaderValue(MediaTypeNames.Application.Json);
