@@ -27,6 +27,9 @@ namespace PhotosApp.Data
                 photosDbContext.SeedWithSamplePhotosAsync().Wait();
                 
                 scope.ServiceProvider.GetRequiredService<UsersDbContext>().Database.Migrate();
+                scope.ServiceProvider.GetRequiredService<TicketsDbContext>().Database.Migrate();
+                var ticketsDbContext = scope.ServiceProvider.GetRequiredService<TicketsDbContext>();
+                ticketsDbContext.SeedWithSampleTicketsAsync().Wait();
             }
             catch (Exception e)
             {
