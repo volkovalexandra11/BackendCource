@@ -2,19 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PhotosApp.Areas.Identity.Data;
 
 namespace PhotosApp.Migrations.UsersDb
 {
     [DbContext(typeof(UsersDbContext))]
-    partial class UsersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210321125301_Paid")]
+    partial class Paid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.5");
+                .HasAnnotation("ProductVersion", "5.0.4");
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -148,7 +150,7 @@ namespace PhotosApp.Migrations.UsersDb
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("PhotosApp.Areas.Identity.Data.PhotosAppUser", b =>
+            modelBuilder.Entity("PhotosApp.Areas.Identity.Data.PhotoAppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -180,7 +182,7 @@ namespace PhotosApp.Migrations.UsersDb
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
-                    
+
                     b.Property<bool>("Paid")
                         .HasColumnType("INTEGER");
 
@@ -226,7 +228,7 @@ namespace PhotosApp.Migrations.UsersDb
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotosAppUser", null)
+                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotoAppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -235,7 +237,7 @@ namespace PhotosApp.Migrations.UsersDb
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotosAppUser", null)
+                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotoAppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -250,7 +252,7 @@ namespace PhotosApp.Migrations.UsersDb
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotosAppUser", null)
+                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotoAppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -259,7 +261,7 @@ namespace PhotosApp.Migrations.UsersDb
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotosAppUser", null)
+                    b.HasOne("PhotosApp.Areas.Identity.Data.PhotoAppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
