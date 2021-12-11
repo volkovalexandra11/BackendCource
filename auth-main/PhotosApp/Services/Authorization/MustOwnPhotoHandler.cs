@@ -37,8 +37,19 @@ namespace PhotosApp.Services.Authorization
 
             // NOTE: Этот метод получает информацию о фотографии, в том числе о владельце
             // await photosRepository.GetPhotoMetaAsync(...)
-
-            throw new NotImplementedException();
+            
+            if (!Guid.TryParse(routeData?.Values["id"].ToString(), out var photoId))
+            {
+                context.Fail();
+                return;
+            }
+            var p = await photosRepository.GetPhotoMetaAsync(photoId);
+            if (p != null && p.OwnerId == userId)
+            {
+                context.Succeed(requirement);
+                return;
+            }
+            context.Fail();
         }
     }
 }
