@@ -25,6 +25,7 @@ namespace PhotosApp.Areas.Identity
                 services.AddDbContext<TicketsDbContext>(options => options.UseSqlite(context.Configuration.GetConnectionString("TicketsDbContextConnection")));
 
                 services.AddDefaultIdentity<PhotosAppUser>()
+                    .AddRoles<IdentityRole>()
                     .AddPasswordValidator<UsernameAsPasswordValidator<PhotosAppUser>>()
                     .AddEntityFrameworkStores<UsersDbContext>()
                     .AddErrorDescriber<RussianIdentityErrorDescriber>();
