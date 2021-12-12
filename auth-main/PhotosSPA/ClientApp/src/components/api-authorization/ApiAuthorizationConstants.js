@@ -43,7 +43,7 @@ export const ApiAuthorizationClientConfiguration = {
   redirect_uri: "https://localhost:8001/authentication/signin-passport",
   post_logout_redirect_uri: "https://localhost:8001/authentication/signout-passport",
   response_type: "code",
-  scope: "openid profile email",
+  scope: "openid profile email photos",
   // опциональные настройки
   // https://github.com/IdentityModel/oidc-client-js/wiki#other-optional-settings
 };
