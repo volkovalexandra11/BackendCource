@@ -47,7 +47,7 @@ namespace PhotosApp
             //services.AddDbContext<PhotosDbContext>(o =>
             //    o.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=PhotosApp;Trusted_Connection=True;"));
 
-            services.AddScoped<IPhotosRepository, RemotePhotosRepository>();
+            services.AddScoped<IPhotosRepository, LocalPhotosRepository>();
 
             services.AddAutoMapper(cfg =>
             {
