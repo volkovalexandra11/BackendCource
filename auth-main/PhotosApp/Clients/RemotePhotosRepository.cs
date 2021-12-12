@@ -14,17 +14,22 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityModel.Client;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace PhotosApp.Clients
 {
     public class RemotePhotosRepository : IPhotosRepository
     {
+        private readonly IHttpContextAccessor httpContextAccessor;
         private readonly string serviceUrl;
         private readonly IMapper mapper;
 
-        public RemotePhotosRepository(IOptions<PhotosServiceOptions> options, IMapper mapper)
+        public RemotePhotosRepository(IOptions<PhotosServiceOptions> options, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
+            this.httpContextAccessor = httpContextAccessor;
             serviceUrl = options.Value.ServiceUrl;
             this.mapper = mapper;
         }
@@ -200,7 +205,12 @@ namespace PhotosApp.Clients
 
         private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
-            var accessToken = await GetAccessTokenByClientCredentialsAsync();
+            var httpContext = httpContextAccessor.HttpContext;
+            
+            var accessToken = await httpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+            if (accessToken == null)
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
+
             var httpClient = new HttpClient();
             httpClient.SetBearerToken(accessToken);
             var response = await httpClient.SendAsync(request);
