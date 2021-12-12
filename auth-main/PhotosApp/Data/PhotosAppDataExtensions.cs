@@ -25,21 +25,12 @@ namespace PhotosApp.Data
 
                 var photosDbContext = scope.ServiceProvider.GetRequiredService<PhotosDbContext>();
                 photosDbContext.SeedWithSamplePhotosAsync().Wait();
-                
-                scope.ServiceProvider.GetRequiredService<UsersDbContext>().Database.Migrate();
-                scope.ServiceProvider.GetRequiredService<TicketsDbContext>().Database.Migrate();
-                var ticketsDbContext = scope.ServiceProvider.GetRequiredService<TicketsDbContext>();
-                ticketsDbContext.SeedWithSampleTicketsAsync().Wait();
-                scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>().SeedWithSampleRolesAsync().Wait();
             }
             catch (Exception e)
             {
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
                 logger.LogError(e, "An error occurred while migrating or seeding the database");
             }
-
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<PhotosAppUser>>();
-            SeedWithSampleUsersAsync(userManager).Wait();
         }
 
         private static async Task SeedWithSamplePhotosAsync(this PhotosDbContext dbContext)
