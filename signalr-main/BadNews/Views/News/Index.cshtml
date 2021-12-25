@@ -1,0 +1,77 @@
+﻿@model BadNews.Models.News.IndexModel
+
+@section Header
+{
+    <div class="row mb-2">
+        @foreach (var article in Model.FeaturedArticles)
+        {
+            <div class="col-md-6">
+                <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+                    <div class="col p-4 d-flex flex-column position-static">
+                        <h3 class="mb-0">@article.Header</h3>
+                        <div class="mb-1 text-muted">@article.Date.ToString("d MMM yyyy", ViewBag.Culture)</div>
+                        <p class="card-text mb-auto">
+                            @article.Teaser
+                        </p>
+                        <a asp-controller="News" asp-action="FullArticle" asp-route-id="@article.Id">Читать полностью</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<main role="main" class="container">
+    <div class="row">
+        <div class="col-md-8 news-main">
+
+            @foreach (var article in Model.PageArticles)
+            {
+                <div class="news-article">
+                    <h4 class="news-article-title">@article.Header</h4>
+                    <p class="news-article-meta">
+                        @article.Date.ToString("d MMM yyyy", ViewBag.Culture)
+                    </p>
+                    <p class="mb-auto">
+                        @article.Teaser
+                    </p>
+                    <a asp-controller="News" asp-action="FullArticle" asp-route-id="@article.Id">Читать полностью</a>
+                </div>
+            }
+
+        <nav class="news-pagination">
+            @if (Model.IsFirst)
+            {
+                <a class="btn btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Новее</a>
+            }
+            else
+            {
+            <a class="btn btn-outline-primary" asp-controller="News" asp-route-year="@Model.Year" asp-route-pageIndex="@(Model.PageIndex - 1)">
+                Новее
+            </a>
+            }
+            @if (Model.IsLast)
+            {
+                <a class="btn btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Старше</a>
+            }
+            else
+            {
+                <a class="btn btn-outline-primary" asp-controller="News" asp-route-year="@Model.Year" asp-route-pageIndex="@(Model.PageIndex + 1)">
+                    Старше
+                </a>
+            }
+        </nav>
+        </div>
+
+        <aside class="col-md-4 news-sidebar">
+            <vc:weather></vc:weather>
+            <vc:archive-links></vc:archive-links>
+        </aside>
+    </div>
+</main>
+
+<footer class="news-footer">
+    <p>
+        <a href="#">Наверх</a>
+    </p>
+</footer>

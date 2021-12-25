@@ -1,0 +1,37 @@
+﻿@using BadNews.Elevation
+@using BadNews.BlazorComponents
+@model BadNews.Models.News.FullArticleModel
+
+<main role="main" class="container">
+    <div class="row">
+        <div class="col-md-8 news-main">
+            <div class="news-article">
+                <h4 class="news-article-title">@Model.Article.Header</h4>
+                <p class="news-article-meta">
+                    @Model.Article.Date.ToString("d MMM yyyy", ViewBag.Culture)
+                </p>
+                @if (ViewContext.IsElevated())
+                {
+                    <form class="mb-4" onsubmit="return confirm('Удалить новость?')"
+                          asp-controller="Editor" asp-action="DeleteArticle" asp-route-id="@(Model.Article.Id)">
+                        <button type="submit" class="btn-danger">Удалить</button>
+                    </form>
+                }
+                @Html.Raw(Model.Article.ContentHtml)
+                @(await Html.RenderComponentAsync<Comments>(RenderMode.ServerPrerendered))
+            </div>
+        </div>
+
+        <aside class="col-md-4 news-sidebar">
+            <vc:weather></vc:weather>
+            <vc:archive-links></vc:archive-links>
+        </aside>
+    </div>
+</main>
+
+
+<footer class="news-footer">
+    <p>
+        <a href="#">Наверх</a>
+    </p>
+</footer>

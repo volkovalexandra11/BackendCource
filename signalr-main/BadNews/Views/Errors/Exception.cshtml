@@ -1,0 +1,12 @@
+﻿@model string
+
+<main role="main" class="container">
+    <h3 class="text-center text-danger">Во время обработки вашего запроса возникла ошибка</h3>
+
+    @if (!string.IsNullOrEmpty(Model))
+    {
+        <p class="text-center"><strong>Request ID:</strong> <code>@Model</code></p>
+    }
+
+    <p class="text-center"><a href="/">Вернуться на главную страницу</a></p>
+</main>
